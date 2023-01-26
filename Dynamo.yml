@@ -1,0 +1,14 @@
+Resources:
+  TsDataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: TsDataTable
+      AttributeDefinitions:
+        - AttributeName: sensorid
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sensorid
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2

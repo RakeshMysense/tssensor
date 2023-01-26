@@ -1,0 +1,89 @@
+service: tsservice
+
+frameworkVersion: '>=2.25.2 <3.0.0'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: dev
+  region: eu-west-2
+
+custom:
+  serverless-iam-roles-per-function:
+    defaultInherit: true
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-iam-roles-per-function
+
+functions:
+  getItems:
+    handler: src/handler.getItems
+    name: getNewSensor
+    description: Get the sensor readings
+    environment:
+      SENSORS_TABLE_NAME:
+        Ref: TsDataTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+        Resource: 'arn:aws:dynamodb:eu-west-2:697892281854:table/TsDataTable'
+    events:
+      - http:
+          path: /user/sensor/{sensorid}
+          method: GET
+  createItem:
+    handler: src/handler.createItem
+    name: createNewSensor
+    description: Store the sensor readings
+    environment:
+      SENSORS_TABLE_NAME:
+        Ref: TsDataTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: 'arn:aws:dynamodb:eu-west-2:697892281854:table/TsDataTable'
+    events:
+      - http:
+          path: /user/sensor
+          method: POST
+  updateItem:
+    handler: src/handler.updateItem
+    name: UpdateNewSensor
+    description: update the sensor readings
+    environment:
+      SENSORS_TABLE_NAME:
+        Ref: TsDataTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:UpdateItem
+        Resource: 'arn:aws:dynamodb:eu-west-2:697892281854:table/TsDataTable'
+    events:
+      - http:
+          path: /user/sensor/{sensorid}
+          method: PUT
+  deleteItem:
+    handler: src/handler.deleteItem
+    name: deleteNewSensor
+    description: delete the sensor readings
+    environment:
+      SENSORS_TABLE_NAME:
+        Ref: TsDataTable
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+          - dynamodb:GetItem
+        Resource: 'arn:aws:dynamodb:eu-west-2:697892281854:table/TsDataTable'
+    events:
+      - http:
+          path: /user/sensor/{sensorid}
+          method: DELETE
+
+resources:
+  - ${file(Dynamo.yml)}
+
