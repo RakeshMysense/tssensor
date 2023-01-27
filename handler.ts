@@ -6,9 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 const dynamoDb = new DynamoDB.DocumentClient();
 
 export const createItem: APIGatewayProxyHandler = async (event: APIGatewayEvent, context: Context, callback: Callback) =>  {
-  console.log("Ok")
-  console.log({event})
-  console.log("Was here")
+
   if (!(event.body)) {
     return {
         statusCode: 400,
@@ -16,7 +14,7 @@ export const createItem: APIGatewayProxyHandler = async (event: APIGatewayEvent,
       };
     }
  
-    const body = JSON.parse(event.body);
+  const body = JSON.parse(event.body);
   const d = body.data;
   if (!d) {
     return {
@@ -24,12 +22,11 @@ export const createItem: APIGatewayProxyHandler = async (event: APIGatewayEvent,
         body: JSON.stringify({ "error": "data is having an invalid value" })
       };
     }
-  const data = JSON.parse(event.body);
   const params = {
-    TableName: 'SensorDataTable',
+    TableName: 'TsDataTable',
     Item: {
       sensorid: uuidv4(),
-      data: data.data
+      data: body.data
     }
   };
     console.log("Was here")
@@ -45,15 +42,12 @@ export const getItems = async (event: APIGatewayEvent, context: Context, callbac
   console.log({event});
 
   const params = {
-    TableName: 'SensorDataTable',
+    TableName: 'TsDataTable',
     Key: {
       sensorid: event.pathParameters!.sensorid
     }
   };
-  console.log({params});
-    // const result={Item:true};
   const result = await dynamoDb.get(params).promise();
-  console.log({ result });
     
   if (result.Item) {
     console.log('got item, this is ok');
@@ -78,14 +72,14 @@ export const updateItem = async (event: APIGatewayEvent, context: Context, callb
         body: JSON.stringify({ "error": "body is invalid" })
       };
     }
-    // Check if sensorId is present in the database
+    
     const result = await dynamoDb.get({
-        TableName: 'SensorDataTable',
+        TableName: 'TsDataTable',
         Key: {
             sensorid: sensorid
         }
     }).promise();
-    console.log({result});
+    
     if (!result.Item) {
         return {
             statusCode: 404,
@@ -94,7 +88,7 @@ export const updateItem = async (event: APIGatewayEvent, context: Context, callb
             })
         }
     }
-    console.log(event.body)
+   
     const body = JSON.parse(event.body);
     const da = body.data;
     if (!da) {
@@ -104,17 +98,14 @@ export const updateItem = async (event: APIGatewayEvent, context: Context, callb
         };
       }
     
-    const d = JSON.parse(event.body);
-    console.log({d})
-    console.log(d.data)
     const params = {
-        TableName: 'SensorDataTable',
+        TableName: 'TsDataTable',
         Key: {
             sensorid: sensorid
         },
         UpdateExpression: 'SET #ts = :s',
         ExpressionAttributeValues: {
-            ':s': d.data
+            ':s': body.data
         },
         ExpressionAttributeNames:{
           "#ts": "data"
@@ -136,13 +127,13 @@ export const updateItem = async (event: APIGatewayEvent, context: Context, callb
 export const deleteItem = async(event: APIGatewayEvent, context: Context, callback: Callback) => {
   const sensorid = event.pathParameters!.sensorid;
   const params = {
-    TableName: 'SensorDataTable',
+    TableName: 'TsDataTable',
     Key: {
       sensorid: event.pathParameters!.sensorid
     }
   };
   const result = await dynamoDb.get({
-    TableName: 'SensorDataTable',
+    TableName: 'TsDataTable',
     Key: {
         sensorid: sensorid
     }
